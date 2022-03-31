@@ -18,6 +18,23 @@ services:
       - "8123:8123"
     volumes:
       - pmm-server-data:/srv
+  pmmi-server:
+    image: percona/pmm-server:2
+    hostname: pmmi-server
+    container_name: pmmi-server
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    ports:
+      - "8284:80"
+      - "8385:443"
+      - "9002:9000"
+      - "8125:8123"
+    volumes:
+      - pmmi-server-data:/srv
   pmm-client:
     image: percona/pmm-client:2
     hostname: pmm-client
@@ -57,8 +74,41 @@ services:
     ports:
       - 27017:27017
     command: ["--config", "/etc/mongod.conf"]
+  mongodb2:
+    image: mongo
+    container_name: mongodb2
+    environment:
+      MONGO_INITDB_DATABASE: admin
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - ./setup/mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+      #      - ./setup/mongo/db:/data/db
+      - mongodb2-data:/data/db
+      - ./setup/mongo/mongod.conf:/etc/mongod.conf
+    ports:
+      - 27018:27017
+    command: [ "--config", "/etc/mongod.conf" ]
+  mongodb3:
+    image: mongo
+    container_name: mongodb3
+    environment:
+      MONGO_INITDB_DATABASE: admin
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - ./setup/mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+      #      - ./setup/mongo/db:/data/db
+      - mongodb3-data:/data/db
+      - ./setup/mongo/mongod.conf:/etc/mongod.conf
+    ports:
+      - 27019:27017
+    command: [ "--config", "/etc/mongod.conf" ]
 
 volumes:
   pmm-server-data:
+  pmmi-server-data:
   pmm-client-data:
   mongodb-data:
+  mongodb2-data:
+  mongodb3-data:

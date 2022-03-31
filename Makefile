@@ -7,9 +7,15 @@ PMM_URL?="http://admin:admin@localhost:8282"
 PMM_VM_URL?="http://admin:admin@localhost:8282/prometheus"
 PMM_CH_URL?="http://localhost:9000?database=pmm"
 
+PMMI_URL?="http://admin:admin@localhost:8284"
+PMMI_VM_URL?="http://admin:admin@localhost:8284/prometheus"
+PMMI_CH_URL?="http://localhost:9002?database=pmm"
+
 PMM_MONGO_USERNAME?=pmm_mongodb
 PMM_MONGO_PASSWORD?=password
 PMM_MONGO_URL?=mongodb:27017
+PMM_MONGO2_URL?=mongodb2:27017
+PMM_MONGO3_URL?=mongodb3:27017
 
 ADMIN_MONGO_USERNAME?=admin
 ADMIN_MONGO_PASSWORD?=admin
@@ -42,9 +48,17 @@ pmm-status:
 mongo-reg:
 	docker exec pmm-client pmm-admin add mongodb \
 		--username=$(PMM_MONGO_USERNAME) --password=$(PMM_MONGO_PASSWORD) mongo $(PMM_MONGO_URL)
+	docker exec pmm-client pmm-admin add mongodb \
+		--username=$(PMM_MONGO_USERNAME) --password=$(PMM_MONGO_PASSWORD) mongo2 $(PMM_MONGO2_URL)
+	docker exec pmm-client pmm-admin add mongodb \
+		--username=$(PMM_MONGO_USERNAME) --password=$(PMM_MONGO_PASSWORD) mongo3 $(PMM_MONGO3_URL)
 
 mongo-insert:
 	docker exec mongodb mongo -u $(ADMIN_MONGO_USERNAME) -p $(ADMIN_MONGO_PASSWORD) \
+		--eval 'db.getSiblingDB("mydb").mycollection.insert( [{ "a": 1 }, { "b": 2 }] )' admin
+	docker exec mongodb2 mongo -u $(ADMIN_MONGO_USERNAME) -p $(ADMIN_MONGO_PASSWORD) \
+		--eval 'db.getSiblingDB("mydb").mycollection.insert( [{ "a": 1 }, { "b": 2 }] )' admin
+	docker exec mongodb3 mongo -u $(ADMIN_MONGO_USERNAME) -p $(ADMIN_MONGO_PASSWORD) \
 		--eval 'db.getSiblingDB("mydb").mycollection.insert( [{ "a": 1 }, { "b": 2 }] )' admin
 
 export-all:
@@ -61,7 +75,7 @@ export-ch:
 
 import-all:
 	./$(PMMD_BIN_NAME) import -v --dump-path $(DUMP_FILENAME) \
-		--pmm-url=$(PMM_URL) --dump-core --dump-qan
+		--pmm-url=$(PMMI_URL) --dump-core --dump-qan
 
 clean:
 	rm -f $(PMMD_BIN_NAME) $(PMM_DUMP_PATTERN) $(DUMP_FILENAME)
